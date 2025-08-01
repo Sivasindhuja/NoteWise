@@ -101,7 +101,7 @@ form.create-note button {
   cursor: pointer;
   outline: none;
 }
-.take-quiz-button {
+/* .take-quiz-button {
   background-color: #ffffff;
   color: #f5ba13;
   border: 2px solid #f5ba13;
@@ -117,9 +117,23 @@ form.create-note button {
 .take-quiz-button:hover {
   background-color: #f5ba13;
   color: #fff;
+} */
+
+
+
+.take-quiz-button {
+  padding: 12px 24px;
+  background-color: #6c63ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  cursor: pointer;
 }
 
-
-
+.take-quiz-button:hover {
+  background-color: #574dcf;
+}
 
 

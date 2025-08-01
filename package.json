@@ -1,14 +1,20 @@
 {
   "name": "using-pre-built-react-components-completed",
   "version": "1.0.0",
-  "description": "",
+  "description": "Keeper is a note-taking app built with HTML, CSS, JavaScript, and React. It is inspired by the tutorial from Angela Yu's \"The Complete Web Development Bootcamp\" on Udemy.",
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
     "@material-ui/core": "4.6.1",
     "@material-ui/icons": "4.5.1",
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
     "react": "16.8.6",
     "react-dom": "16.8.6",
+    "react-router-dom": "^5.3.4",
     "react-scripts": "^5.0.1",
     "uuid": "3.3.3",
     "webpack": "^5.100.2"
@@ -27,5 +33,7 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "author": "",
+  "license": "ISC"
 }

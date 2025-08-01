@@ -5,6 +5,8 @@ import Note from "./Note";
 import CreateArea from "./CreateArea";
 import QuizButton from "./quizButton";
 
+import ViewQuizzes from "./ViewQuizzes";
+
 function App() {
   const [notes, setNotes] = useState([]);
 
@@ -48,27 +50,29 @@ function App() {
         style={{ textAlign: "center", marginTop: "30px", marginBottom: "20px" }}
       >
         <p style={{ fontSize: "18px", marginBottom: "10px" }}>
-          You’ve added {notes.length} notes — Ready to take a quiz?
+           You’ve added {notes.length} notes — Ready to take a quiz?
         </p>
-        <QuizButton />
-      </div>
+        {/* <QuizButton /> */}
+        <QuizButton notes={notes} />
+
+      </div> */
 
       <CreateArea onAdd={addNote} />
       {notes.map((noteItem, index) => {
-        return (
-          <Note
-            key={index}
-            id={index}
+       return (
+               <Note
+             key={index}
+             id={index}
             title={noteItem.title}
-            content={noteItem.content}
-            onDelete={deleteNote}
+                         content={noteItem.content}
+             onDelete={deleteNote}
           />
         );
       })}
 
       <Footer />
     </div>
-  );
-}
+   );
+ }
 
-export default App;
+ export default App;
