@@ -7,9 +7,15 @@ function ViewQuizzes() {
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-       const response = await axios.get("http://localhost:5000/quizzes", {
-  params: { userId: 1 }
-});
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          console.error("User ID not found in localStorage");
+          return;
+        }
+
+        const response = await axios.get("http://localhost:5000/quizzes", {
+          params: { userId }
+        });
 
         setQuizzes(response.data);
       } catch (error) {
