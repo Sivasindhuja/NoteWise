@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
 function QuizInterface({ quiz }) {
   console.log("Loaded quiz:", quiz);
-  
+
+  // ✅ Always work with questions array
+  const questions = quiz?.questions || [];
+
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [correctAnswers, setCorrectAnswers] = useState({});
   const [quizSaved, setQuizSaved] = useState(false);
 
+  // ✅ Safeguard: Ensure we have questions
+  if (questions.length === 0) {
+    return <p style={{ padding: "20px" }}>Loading quiz...</p>;
+  }
+
   const handleAnswer = (qIndex, selectedOption) => {
-    if (selectedAnswers[qIndex] !== undefined) return;
+    if (selectedAnswers[qIndex] !== undefined) return; // already answered
 
     const isCorrect =
       String(selectedOption).trim().toLowerCase() ===
-      String(quiz[qIndex].answer).trim().toLowerCase();
+      String(questions[qIndex].answer).trim().toLowerCase();
 
     setSelectedAnswers((prev) => ({
       ...prev,
@@ -25,17 +32,22 @@ function QuizInterface({ quiz }) {
       [qIndex]: isCorrect,
     }));
 
-    console.log(`Q${qIndex + 1}: Selected "${selectedOption}", Correct is "${quiz[qIndex].answer}" →`, isCorrect);
+    console.log(
+      `Q${qIndex + 1}: Selected "${selectedOption}", Correct is "${questions[qIndex].answer}" →`,
+      isCorrect
+    );
   };
 
   const score = Object.values(correctAnswers).filter(Boolean).length;
 
   useEffect(() => {
-    const allAnswered = Object.keys(selectedAnswers).length === quiz.length;
+    if (questions.length === 0) return;
+
+    const allAnswered = Object.keys(selectedAnswers).length === questions.length;
     const userId = localStorage.getItem("userId");
 
     if (allAnswered && !quizSaved && userId) {
-      const calculatedScore = Object.values(correctAnswers).filter(Boolean).length;
+      const calculatedScore = score;
 
       fetch("http://localhost:5000/save-quiz", {
         method: "POST",
@@ -45,23 +57,24 @@ function QuizInterface({ quiz }) {
         body: JSON.stringify({
           userId,
           score: calculatedScore,
-          total: quiz.length,
-          quizData: quiz,
+          total: questions.length,
+          quizData: questions, // ✅ only save questions array
         }),
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log(" Quiz saved to DB:", data);
+          console.log("✅ Quiz saved to DB:", data);
           setQuizSaved(true);
         })
         .catch((err) => {
-          console.error("Failed to save quiz:", err);
+          console.error("❌ Failed to save quiz:", err);
         });
     }
-  }, [selectedAnswers, correctAnswers, quiz.length, quizSaved, quiz]);
+  }, [selectedAnswers, correctAnswers, questions, quizSaved, score]);
 
   return (
     <div style={{ padding: "20px" }}>
+      {/* Floating Scoreboard */}
       <div
         style={{
           position: "fixed",
@@ -69,12 +82,17 @@ function QuizInterface({ quiz }) {
           right: 20,
           fontWeight: "bold",
           fontSize: "18px",
+          background: "#fff",
+          padding: "8px 12px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
         }}
       >
-        Score: {score} / {quiz.length}
+        Score: {score} / {questions.length}
       </div>
 
-      {quiz.map((q, index) => {
+      {/* Render each question */}
+      {questions.map((q, index) => {
         const wasAnswered = selectedAnswers[index] !== undefined;
 
         return (
@@ -102,7 +120,7 @@ function QuizInterface({ quiz }) {
               if (wasAnswered) {
                 if (isSelected && isCorrect) background = "#c8f7c5"; // green
                 else if (isSelected && !isCorrect) background = "#f7c5c5"; // red
-                else if (isCorrect) background = "#dff0ff"; // blue
+                else if (isCorrect) background = "#dff0ff"; // highlight correct
               }
 
               return (
@@ -130,11 +148,10 @@ function QuizInterface({ quiz }) {
             {wasAnswered && (
               <p style={{ marginTop: "8px", fontWeight: "500" }}>
                 {correctAnswers[index] ? (
-                  <span style={{ color: "green" }}>Correct!</span>
+                  <span style={{ color: "green" }}>✅ Correct!</span>
                 ) : (
                   <span style={{ color: "red" }}>
-                    Incorrect. Correct answer:{" "}
-                    <strong>{q.answer}</strong>
+                    ❌ Incorrect. Correct answer: <strong>{q.answer}</strong>
                   </span>
                 )}
               </p>

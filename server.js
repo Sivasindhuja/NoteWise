@@ -7,7 +7,7 @@ require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("./db"); 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET ;
 
 
 
@@ -215,6 +215,98 @@ app.get("/get-streak/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch streaks" });
   }
 });
+
+   app.get("/generate-quiz-stream", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  function sendEvent(event) {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  }
+
+  try {
+    // Step 1: simulate progress
+    sendEvent({ status: "progress", percent: 25, message: "Collecting notes..." });
+
+    setTimeout(() => {
+      sendEvent({ status: "progress", percent: 50, message: "Calling Gemini..." });
+    }, 1000);
+
+    // Step 2: Call Gemini API
+    const formattedNotes = "Note 1: React - A JS library\nNote 2: Express - Node.js framework";
+    const prompt = `
+      Based on the following notes, generate 3 multiple-choice quiz questions.
+      Each question must include:
+      - "question" (string),
+      - "options" (array of 4 strings),
+      - "answer" (string, exactly one of the options).
+      Respond strictly in JSON.
+      Notes:
+      ${formattedNotes}
+    `;
+
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "google/gemini-pro-1.5",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1000,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "http://localhost:3000",
+        },
+      }
+    );
+
+    setTimeout(() => {
+      sendEvent({ status: "progress", percent: 75, message: "Formatting quiz..." });
+    }, 2000);
+
+    // Step 3: Parse and sanitize
+    let output = response.data.choices[0]?.message?.content || "";
+    output = output.replace(/```json|```/g, "").trim();
+
+    let quiz;
+    try {
+      quiz = JSON.parse(output);
+      if (!quiz.questions) throw new Error("Missing questions array");
+    } catch (err) {
+      console.error(" Failed to parse Gemini quiz JSON:", err, "\nRaw output:", output);
+
+      // fallback dummy quiz in correct format
+      quiz = {
+        questions: [
+          {
+            question: "What is React?",
+            options: ["A CSS framework", "A database", "A JS library for building UI", "A game engine"],
+            answer: "A JS library for building UI",
+          },
+          {
+            question: "What is Express?",
+            options: ["A Python library", "A Node.js web framework", "A database", "An IDE"],
+            answer: "A Node.js web framework",
+          },
+        ],
+      };
+    }
+
+    // Step 4: Send final result
+    setTimeout(() => {
+      sendEvent({ status: "done", quiz });
+      res.end();
+    }, 3000);
+
+  } catch (err) {
+    console.error("SSE quiz generation failed:", err.message);
+    sendEvent({ status: "error", message: "Quiz generation failed." });
+    res.end();
+  }
+});
+
 
 
 const PORT = 5000;

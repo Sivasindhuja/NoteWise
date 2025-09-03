@@ -1,53 +1,55 @@
 import React, { useState } from "react";
-import QuizInterface from "./QuizInterface"; 
+import QuizInterface from "./QuizInterface";
 
 function QuizButton({ notes }) {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState({ percent: 0, message: "" });
   const [error, setError] = useState("");
 
   const handleClick = async () => {
     setLoading(true);
     setError("");
+    setProgress({ percent: 0, message: "Starting quiz generation..." });
 
-    try {
-      const response = await fetch("http://localhost:5000/generate-quiz", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ notes }),
-      });
+    const eventSource = new EventSource("http://localhost:5000/generate-quiz-stream");
 
-      const data = await response.json();
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("SSE event:", data);
 
-      if (response.ok) {
-        const quizData = data.quiz;
-        setQuiz(quizData);
+        if (data.status === "progress") {
+          setProgress({ percent: data.percent, message: data.message });
+        } else if (data.status === "done") {
+          setQuiz(data.quiz);
+          setLoading(false);
+          eventSource.close();
 
-        
-        const userId = localStorage.getItem("userId");
-        if (userId) {
-          await fetch("http://localhost:5000/update-streak", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId }),
-          });
-        } else {
-          console.warn("User not logged in – skipping streak update.");
+          // ✅ update streak if user logged in
+          const userId = localStorage.getItem("userId");
+          if (userId) {
+            fetch("http://localhost:5000/update-streak", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId }),
+            });
+          }
         }
-
-      } else {
-        setError(data.error || "Failed to generate quiz");
+      } catch (err) {
+        console.error("SSE parse error:", err);
+        setError("Error processing quiz data.");
+        setLoading(false);
+        eventSource.close();
       }
-    } catch (err) {
-      setError("Network error or server is down.");
-      console.error(err);
-    }
+    };
 
-    setLoading(false);
+    eventSource.onerror = (err) => {
+      console.error("SSE error:", err);
+      setError("Failed to connect to server.");
+      setLoading(false);
+      eventSource.close();
+    };
   };
 
   return (
@@ -55,11 +57,25 @@ function QuizButton({ notes }) {
       {!quiz && (
         <button
           onClick={handleClick}
-          
-          className="take-quiz-button"
+          disabled={loading}
+          style={{
+            padding: "10px 20px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: loading ? "not-allowed" : "pointer",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            fontWeight: "bold",
+          }}
         >
-          {loading ? "Generating..." : "Take Quiz"}
+          {loading ? "Loading quiz..." : "Take Quiz"}
         </button>
+      )}
+
+      {loading && (
+        <p>
+          {progress.percent}% - {progress.message}
+        </p>
       )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
