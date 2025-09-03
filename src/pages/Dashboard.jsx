@@ -1,29 +1,41 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from "recharts";
 
-function Dashboard() {
+const Dashboard = () => {
   const [quizData, setQuizData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
         const userId = localStorage.getItem("userId");
-        const response = await axios.get("http://localhost:5000/quizzes", {
+        if (!userId) return;
+
+        const { data } = await axios.get("http://localhost:5000/quizzes", {
           params: { userId },
         });
 
-        const formattedData = response.data.map((quiz, index) => ({
+        const formatted = data.map((quiz, index) => ({
           name: `Quiz ${index + 1}`,
           score: quiz.score,
-          total: quiz.total_questions
+          total: quiz.total_questions,
         }));
 
-        setQuizData(formattedData);
+        setQuizData(formatted);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -32,8 +44,13 @@ function Dashboard() {
 
   return (
     <div style={{ width: "90%", margin: "auto", padding: "30px" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "30px" }}>Quiz Performance Dashboard</h2>
-      {quizData.length === 0 ? (
+      <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
+        Quiz Performance Dashboard
+      </h2>
+
+      {loading ? (
+        <p style={{ textAlign: "center" }}>Loading...</p>
+      ) : quizData.length === 0 ? (
         <p style={{ textAlign: "center" }}>No quiz data available.</p>
       ) : (
         <ResponsiveContainer width="100%" height={400}>
@@ -50,6 +67,6 @@ function Dashboard() {
       )}
     </div>
   );
-}
+};
 
 export default Dashboard;

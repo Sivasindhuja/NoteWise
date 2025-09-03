@@ -1,22 +1,18 @@
+// QuizInterface.jsx
+
 import React, { useEffect, useState } from "react";
 
-function QuizInterface({ quiz }) {
+const QuizInterface = ({ quiz }) => {
   console.log("Loaded quiz:", quiz);
 
-  // ✅ Always work with questions array
-  const questions = quiz?.questions || [];
+  const questions = Array.isArray(quiz) ? quiz : quiz?.questions || [];
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [correctAnswers, setCorrectAnswers] = useState({});
   const [quizSaved, setQuizSaved] = useState(false);
 
-  // ✅ Safeguard: Ensure we have questions
-  if (questions.length === 0) {
-    return <p style={{ padding: "20px" }}>Loading quiz...</p>;
-  }
-
   const handleAnswer = (qIndex, selectedOption) => {
-    if (selectedAnswers[qIndex] !== undefined) return; // already answered
+    if (selectedAnswers[qIndex] !== undefined) return; // Already answered
 
     const isCorrect =
       String(selectedOption).trim().toLowerCase() ===
@@ -34,7 +30,7 @@ function QuizInterface({ quiz }) {
 
     console.log(
       `Q${qIndex + 1}: Selected "${selectedOption}", Correct is "${questions[qIndex].answer}" →`,
-      isCorrect
+      isCorrect,
     );
   };
 
@@ -51,14 +47,12 @@ function QuizInterface({ quiz }) {
 
       fetch("http://localhost:5000/save-quiz", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
           score: calculatedScore,
           total: questions.length,
-          quizData: questions, // ✅ only save questions array
+          quizData: questions, // ✅ Only save questions array
         }),
       })
         .then((res) => res.json())
@@ -161,6 +155,6 @@ function QuizInterface({ quiz }) {
       })}
     </div>
   );
-}
+};
 
 export default QuizInterface;

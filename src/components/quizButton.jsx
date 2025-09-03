@@ -1,55 +1,58 @@
+// QuizButton.jsx
+
 import React, { useState } from "react";
 import QuizInterface from "./QuizInterface";
 
-function QuizButton({ notes }) {
+const QuizButton = ({ notes }) => {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState({ percent: 0, message: "" });
   const [error, setError] = useState("");
 
   const handleClick = async () => {
     setLoading(true);
     setError("");
-    setProgress({ percent: 0, message: "Starting quiz generation..." });
 
-    const eventSource = new EventSource("http://localhost:5000/generate-quiz-stream");
+    try {
+      const response = await fetch("http://localhost:5000/generate-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("SSE event:", data);
-
-        if (data.status === "progress") {
-          setProgress({ percent: data.percent, message: data.message });
-        } else if (data.status === "done") {
-          setQuiz(data.quiz);
-          setLoading(false);
-          eventSource.close();
-
-          // ✅ update streak if user logged in
-          const userId = localStorage.getItem("userId");
-          if (userId) {
-            fetch("http://localhost:5000/update-streak", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId }),
-            });
-          }
-        }
-      } catch (err) {
-        console.error("SSE parse error:", err);
-        setError("Error processing quiz data.");
-        setLoading(false);
-        eventSource.close();
+      if (!response.ok) {
+        throw new Error("Failed to generate quiz");
       }
-    };
 
-    eventSource.onerror = (err) => {
-      console.error("SSE error:", err);
-      setError("Failed to connect to server.");
+      const data = await response.json();
+      console.log("Quiz response:", data);
+
+      // Normalize quiz structure
+      let normalizedQuiz;
+      if (Array.isArray(data.quiz)) {
+        normalizedQuiz = { questions: data.quiz };
+      } else if (data.quiz?.questions) {
+        normalizedQuiz = data.quiz;
+      } else {
+        normalizedQuiz = { questions: [] };
+      }
+
+      setQuiz(normalizedQuiz);
+
+      // ✅ Update streak if user logged in
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        fetch("http://localhost:5000/update-streak", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+      }
+    } catch (err) {
+      console.error("Quiz fetch error:", err);
+      setError("Error generating quiz. Please try again.");
+    } finally {
       setLoading(false);
-      eventSource.close();
-    };
+    }
   };
 
   return (
@@ -72,17 +75,11 @@ function QuizButton({ notes }) {
         </button>
       )}
 
-      {loading && (
-        <p>
-          {progress.percent}% - {progress.message}
-        </p>
-      )}
-
+      {loading && <p>Generating your quiz, please wait...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-
       {quiz && <QuizInterface quiz={quiz} />}
     </div>
   );
-}
+};
 
 export default QuizButton;

@@ -1,68 +1,54 @@
 import React, { useState } from "react";
 import AddIcon from "@material-ui/icons/Add";
- import Fab from "@material-ui/core/Fab";
- import Zoom from "@material-ui/core/Zoom";
+import Fab from "@material-ui/core/Fab";
+import Zoom from "@material-ui/core/Zoom";
 
-function CreateArea(props) {
+const CreateArea = ({ onAdd }) => {
   const [isExpanded, setExpanded] = useState(false);
+  const [note, setNote] = useState({ title: "", content: "" });
 
-  const [note, setNote] = useState({
-    title: "",
-    content: ""
-  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setNote((prev) => ({ ...prev, [name]: value }));
+  };
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-
-    setNote(prevNote => {
-      return {
-        ...prevNote,
-        [name]: value
-      };
-    });
-  }
-
-  function submitNote(event) {
-    props.onAdd(note);
-    setNote({
-      title: "",
-      content: ""
-    });
-    event.preventDefault();
-  }
-
-  function expand() {
-    setExpanded(true);
-  }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!note.title && !note.content) return; // prevent empty notes
+    onAdd(note);
+    setNote({ title: "", content: "" });
+  };
 
   return (
     <div>
-      <form className="create-note">
+      <form className="create-note" onSubmit={handleSubmit}>
         {isExpanded && (
           <input
+            type="text"
             name="title"
-            onChange={handleChange}
             value={note.title}
+            onChange={handleChange}
             placeholder="Title"
           />
         )}
 
         <textarea
           name="content"
-          onClick={expand}
-          onChange={handleChange}
           value={note.content}
+          onClick={() => setExpanded(true)}
+          onChange={handleChange}
           placeholder="Take a note..."
           rows={isExpanded ? 3 : 1}
         />
+
         <Zoom in={isExpanded}>
-          <Fab onClick={submitNote}> 
+          <Fab type="submit">
             <AddIcon />
-           </Fab> 
-         </Zoom> 
+          </Fab>
+        </Zoom>
       </form>
     </div>
   );
-}
+};
 
 export default CreateArea;

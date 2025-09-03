@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
-import Note from "./Note";
-import CreateArea from "./CreateArea";
-import QuizButton from "./quizButton";
+// Home.jsx
 
-function Home() {
+import React, { useState, useEffect } from "react";
+
+// Components
+import Note from "../components/Note";
+import CreateArea from "../components/CreateArea";
+import QuizButton from "../components/quizButton";
+
+const Home = () => {
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {
@@ -15,17 +19,17 @@ function Home() {
     localStorage.setItem("notes", JSON.stringify(notes));
   }, [notes]);
 
-  function addNote(newNote) {
+  const addNote = (newNote) => {
     if (notes.length < 20) {
       setNotes([...notes, newNote]);
     } else {
       alert("Max note limit reached! Master and move notes to add more.");
     }
-  }
+  };
 
-  function deleteNote(id) {
+  const deleteNote = (id) => {
     setNotes(notes.filter((_, index) => index !== id));
-  }
+  };
 
   return (
     <div>
@@ -48,6 +52,6 @@ function Home() {
       ))}
     </div>
   );
-}
+};
 
 export default Home;

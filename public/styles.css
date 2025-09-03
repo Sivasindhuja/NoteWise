@@ -3,16 +3,18 @@
   margin: 0;
   box-sizing: border-box;
 }
+
 html {
   font-family: "Montserrat", sans-serif;
 }
+
 body {
   background: #eee;
   background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
   padding: 0 16px;
 }
 
-
+/* Header */
 header {
   background-color: #f5ba13;
   margin: auto -16px;
@@ -29,7 +31,7 @@ header h1 {
   margin-right: 20px;
 }
 
-
+/* Navbar */
 nav {
   display: flex;
   gap: 20px;
@@ -46,9 +48,8 @@ nav a:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-
+/* Footer */
 footer {
-  
   padding: 10px 0;
   text-align: center;
   width: 100%;
@@ -61,12 +62,11 @@ footer {
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
   z-index: 100;
 }
-
 footer p {
   color: #ccc;
 }
 
-
+/* Notes */
 .note {
   background: #fff;
   border-radius: 7px;
@@ -95,6 +95,7 @@ footer p {
   outline: none;
 }
 
+/* Create Note Form */
 form.create-note {
   position: relative;
   width: 480px;
@@ -129,7 +130,7 @@ form.create-note button {
   outline: none;
 }
 
-
+/* Take Quiz Button */
 .take-quiz-button {
   padding: 12px 24px;
   background-color: #6c63ff;
@@ -142,4 +143,98 @@ form.create-note button {
 }
 .take-quiz-button:hover {
   background-color: #574dcf;
+}
+
+/* ----------------------------- */
+/* Login/Register Auth Styles    */
+/* ----------------------------- */
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.auth-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  text-align: center;
+}
+
+.auth-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.auth-subtitle {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-form label {
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.auth-form input {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.auth-form input:focus {
+  border-color: #4caf50;
+}
+
+.auth-error {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: -0.5rem;
+}
+
+.auth-form button {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: #4caf50;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-form button:hover {
+  background: #45a049;
+}
+
+.auth-footer {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.auth-link {
+  color: #4caf50;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
 }
