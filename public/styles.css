@@ -238,3 +238,23 @@ form.create-note button {
 .auth-link:hover {
   text-decoration: underline;
 }
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.profile-pic-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.profile-pic {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  cursor: pointer;
+}

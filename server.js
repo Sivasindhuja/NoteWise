@@ -241,6 +241,51 @@ app.get("/get-streak/:userId", async (req, res) => {
   }
 });
 
+//=================
+  //profile picture 
+//=================
+
+app.post("/upload-profile-pic",async(req,res)=>{
+  const {userId,imageBase64} =req.body;
+
+  if(!userId || imageBase64){
+    res.status(400).json({error:"Missing userId or imageBase64"});
+  }
+
+  try{
+    await pool.query(
+      "UPDATE users SET profile_pic=$1 WHERE id=$2",
+      [imageBase64,userId]
+    );
+    res.json({message:"Profile Pic uploaded successfully"});
+  }
+  catch(err){
+    console.error("Error uploading your profile picture",err);
+    res.status(500).json({error :"Failed uploading your profile picture"});
+  }
+});
+
+app.get("/get-profile-pic/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await pool.query(
+      "SELECT profile_pic FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].profile_pic) {
+      return res.json({ profile_pic: null });
+    }
+
+    res.json({ profile_pic: result.rows[0].profile_pic });
+  } catch (err) {
+    console.error("Error fetching profile pic:", err);
+    res.status(500).json({ error: "Failed to fetch profile picture" });
+  }
+});
+
+
 // =====================
 // Server
 // =====================
