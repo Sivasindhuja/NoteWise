@@ -1,4 +1,3 @@
-// Streaks.jsx
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -19,11 +18,16 @@ const Streaks = () => {
       .catch((err) => console.error("Error fetching streaks:", err));
   }, []);
 
+  const isSingleDay=streaks.current_streak===1;
+  
+
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h2>📈 Your Quiz Streaks</h2>
+      
       <p>
-        <strong>Current Streak:</strong> {streaks.current_streak} day(s)
+        <strong>Current Streak:</strong> 
+      {streaks.current_streak} {isSingleDay ? "day":"days"}
       </p>
       <p>
         <strong>Longest Streak:</strong> {streaks.longest_streak} day(s)
