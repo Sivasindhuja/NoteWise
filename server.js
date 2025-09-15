@@ -18,7 +18,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 // =====================
 const app = express();
 app.use(cors()); // Cross Origin Resource Sharing
-app.use(express.json());
+// app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // =====================
 // Routes
@@ -245,27 +247,28 @@ app.get("/get-streak/:userId", async (req, res) => {
   //profile picture 
 //=================
 
-app.post("/upload-profile-pic",async(req,res)=>{
-  const {userId,imageBase64} =req.body;
+// Upload profile picture
+app.post("/upload-profile-picture", async (req, res) => {
+  const { userId, imageBase64 } = req.body;
 
-  if(!userId || imageBase64){
-    res.status(400).json({error:"Missing userId or imageBase64"});
+  if (!userId || !imageBase64) {
+    return res.status(400).json({ error: "Missing userId or imageBase64" });
   }
 
-  try{
+  try {
     await pool.query(
-      "UPDATE users SET profile_pic=$1 WHERE id=$2",
-      [imageBase64,userId]
+      "UPDATE users SET profile_pic = $1 WHERE id = $2",
+      [imageBase64, userId]
     );
-    res.json({message:"Profile Pic uploaded successfully"});
-  }
-  catch(err){
-    console.error("Error uploading your profile picture",err);
-    res.status(500).json({error :"Failed uploading your profile picture"});
+    res.json({ message: "Profile picture uploaded successfully" });
+  } catch (err) {
+    console.error("Error uploading your profile picture", err);
+    res.status(500).json({ error: "Failed uploading your profile picture" });
   }
 });
 
-app.get("/get-profile-pic/:userId", async (req, res) => {
+// Get profile picture
+app.get("/get-profile-picture/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
@@ -275,13 +278,35 @@ app.get("/get-profile-pic/:userId", async (req, res) => {
     );
 
     if (result.rows.length === 0 || !result.rows[0].profile_pic) {
-      return res.json({ profile_pic: null });
+      return res.json({ imageBase64: null });
     }
 
-    res.json({ profile_pic: result.rows[0].profile_pic });
+    res.json({ imageBase64: result.rows[0].profile_pic });
   } catch (err) {
     console.error("Error fetching profile pic:", err);
     res.status(500).json({ error: "Failed to fetch profile picture" });
+  }
+});
+
+
+// Delete profile picture
+app.delete("/delete-profile-picture/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await pool.query(
+      "UPDATE users SET profile_pic = NULL WHERE id = $1 RETURNING id",
+      [userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "Profile picture deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting profile picture:", err);
+    res.status(500).json({ error: "Failed to delete profile picture" });
   }
 });
 

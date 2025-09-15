@@ -1,26 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const ProfilePictureUpload = ({ onUpload }) => {
-  const [preview, setPreview] = useState(null);
+const ProfilePictureUpload = ({ onUpload, showAsIcon = false }) => {
   const [loading, setLoading] = useState(false);
+  const userId = localStorage.getItem("userId");
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // preview for UI
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-
-    // upload to backend
-    const reader2 = new FileReader();
-    reader2.onloadend = async () => {
-      const base64 = reader2.result;
-      const userId = localStorage.getItem("userId");
+    reader.onloadend = async () => {
+      const base64 = reader.result;
 
       try {
         setLoading(true);
@@ -28,16 +19,14 @@ const ProfilePictureUpload = ({ onUpload }) => {
           userId,
           imageBase64: base64,
         });
-
-        localStorage.setItem("profile_picture", base64);
         if (onUpload) onUpload(base64);
       } catch (err) {
-        console.error(err);
+        console.error("Upload failed", err);
       } finally {
         setLoading(false);
       }
     };
-    reader2.readAsDataURL(file);
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -52,12 +41,8 @@ const ProfilePictureUpload = ({ onUpload }) => {
       <label htmlFor="profile-upload" style={{ cursor: "pointer" }}>
         {loading ? (
           <span>Uploading...</span>
-        ) : preview ? (
-          <img
-            src={preview}
-            alt="profile preview"
-            style={{ width: 50, height: 50, borderRadius: "50%" }}
-          />
+        ) : showAsIcon ? (
+          <span style={{ fontSize: "0.8rem" }}>✏️</span>
         ) : (
           <span>Upload Photo</span>
         )}
