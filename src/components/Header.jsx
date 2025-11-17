@@ -47,6 +47,7 @@ const Header = ({ isLoggedIn, onLogout }) => {
           <Link to="/prev-quizzes">Previous Quizzes</Link>
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/streaks">Streaks</Link>
+           <Link to="/mastered-notes" style={{ color: "white", textDecoration: "none" }}>Mastered Notes</Link>
           {isLoggedIn && (
             <button onClick={onLogout} className="logout-button">
               Logout

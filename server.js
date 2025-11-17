@@ -310,9 +310,138 @@ app.delete("/delete-profile-picture/:userId", async (req, res) => {
   }
 });
 
+const { google } = require("googleapis");
+
+
+
+// =====================
+// Google OAuth Setup
+// =====================
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+
+// Step A: Redirect user to Google consent screen
+app.get("/google/auth", (req, res) => {
+  const url = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/drive.file"
+    ],
+    prompt: "consent"
+  });
+  res.redirect(url);
+});
+
+// ✅ Step B: Callback after Google login
+app.get("/google/callback", async (req, res) => {
+  const { code } = req.query;
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+
+    // Redirect back to frontend with access token
+    const accessToken = tokens.access_token;
+    res.redirect(`http://localhost:3000?googleToken=${accessToken}`);
+  } catch (err) {
+    console.error("Google callback error:", err);
+    res.status(500).send("Google authentication failed");
+  }
+});
+
+
+
+app.post("/export-to-docs", async (req, res) => {
+  const { title, content, userId } = req.body;
+
+  try {
+    const userResult = await pool.query(
+      "SELECT google_tokens, mastered_doc_id FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (!userResult.rows[0]?.google_tokens) {
+      return res.status(401).json({ error: "Google not connected" });
+    }
+
+    oauth2Client.setCredentials(JSON.parse(userResult.rows[0].google_tokens));
+    const docs = google.docs({ version: "v1", auth: oauth2Client });
+
+    let documentId = userResult.rows[0].mastered_doc_id;
+
+    if (!documentId) {
+      const newDoc = await docs.documents.create({
+        requestBody: { title: "NoteWise Mastered Notes" }
+      });
+      documentId = newDoc.data.documentId;
+
+      await pool.query(
+        "UPDATE users SET mastered_doc_id=$1 WHERE id=$2",
+        [documentId, userId]
+      );
+    }
+
+    await docs.documents.batchUpdate({
+      documentId,
+      requestBody: {
+        requests: [
+          {
+            insertText: {
+              text: `\n\n# ${title}\n${content}`,
+              location: { index: 1 }
+            }
+          }
+        ]
+      }
+    });
+
+    const docUrl = `https://docs.google.com/document/d/${documentId}/edit`;
+    res.json({ success: true, docUrl });
+  } catch (err) {
+    console.error("Error exporting to Google Docs:", err);
+    res.status(500).json({ error: "Failed to export note" });
+  }
+});
+
+
+app.get("/mastered-notes", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "No token provided" });
+
+    const token = authHeader.replace("Bearer ", "").trim();
+    if (!token) return res.status(401).json({ error: "Invalid token" });
+
+    // Initialize OAuth2 client with just the access token
+    const oauth2Client = new google.auth.OAuth2();
+    oauth2Client.setCredentials({ access_token: token });
+
+    const drive = google.drive({ version: "v3", auth: oauth2Client });
+
+    // List top 10 Google Docs
+    const response = await drive.files.list({
+      q: "mimeType='application/vnd.google-apps.document'",
+      fields: "files(id, name, createdTime)",
+      orderBy: "createdTime desc",
+      pageSize: 10,
+    });
+
+    res.json(response.data.files || []);
+  } catch (err) {
+    console.error("Error fetching mastered notes:", err);
+    if (err.code === 401 || (err.response && err.response.status === 401)) {
+      res.status(401).json({ error: "Unauthorized. Invalid or expired token." });
+    } else {
+      res.status(500).json({ error: "Failed to load mastered notes" });
+    }
+  }
+});
 
 // =====================
 // Server
 // =====================
-const PORT = 5000;
+
+const PORT=5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -3,6 +3,7 @@ import AddIcon from "@material-ui/icons/Add";
 import Fab from "@material-ui/core/Fab";
 import Zoom from "@material-ui/core/Zoom";
 
+
 const CreateArea = ({ onAdd }) => {
   const [isExpanded, setExpanded] = useState(false);
   const [note, setNote] = useState({ title: "", content: "" });
@@ -14,7 +15,7 @@ const CreateArea = ({ onAdd }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!note.title && !note.content) return; // prevent empty notes
+    if (!note.title && !note.content) return; 
     onAdd(note);
     setNote({ title: "", content: "" });
   };

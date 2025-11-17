@@ -1,8 +1,4 @@
-// Home.jsx
-
 import React, { useState, useEffect } from "react";
-
-// Components
 import Note from "../components/Note";
 import CreateArea from "../components/CreateArea";
 import QuizButton from "../components/quizButton";
@@ -11,8 +7,8 @@ const Home = () => {
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {
-    const storedNotes = JSON.parse(localStorage.getItem("notes"));
-    if (storedNotes) setNotes(storedNotes);
+    const storedNotes = JSON.parse(localStorage.getItem("notes")) || [];
+    setNotes(storedNotes);
   }, []);
 
   useEffect(() => {
@@ -28,8 +24,15 @@ const Home = () => {
   };
 
   const deleteNote = (id) => {
-    setNotes(notes.filter((_, index) => index !== id));
+    const updated = notes.filter((_, index) => index !== id);
+    setNotes(updated);
   };
+
+  const handleMaster = (id) => {
+  const updated = notes.filter((n, i) => i !== id);
+  setNotes(updated);
+  localStorage.setItem("notes", JSON.stringify(updated));
+};
 
   return (
     <div>
@@ -48,6 +51,7 @@ const Home = () => {
           title={noteItem.title}
           content={noteItem.content}
           onDelete={deleteNote}
+          onMaster={handleMaster} // 🟢 pass handler here
         />
       ))}
     </div>
