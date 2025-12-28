@@ -3,7 +3,6 @@ import axios from"axios";
 
 //create note function
 
- // controllers/noteController.js
 export async function createNote(req, res) {
     try {
         const { title, content, userId } = req.body; // Extract from body, not params

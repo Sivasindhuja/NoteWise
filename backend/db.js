@@ -25,3 +25,4 @@ async function connectDB(){
     }
 }
 export {query,connectDB};
+export default pool;
