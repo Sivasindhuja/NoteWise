@@ -4,7 +4,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --verbose --detectOpenHandles --forceExit"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --forceExit --no-cache"
   },
   "keywords": [],
   "author": "",
