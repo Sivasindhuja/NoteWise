@@ -1,0 +1,18 @@
+steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: cd backend && npm install  # added 'cd backend'
+
+      - name: Run Tests
+        run: cd backend && npm test     # added 'cd backend'
+        env:
+          DB_USER: postgres
+          DB_HOST: localhost
+          DB_DATABASE: cogniflow
+          DB_PASSWORD: password
+          DB_PORT: 5432
