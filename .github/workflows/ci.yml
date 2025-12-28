@@ -1,18 +1,47 @@
-steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
+name: CogniFlow CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: cogniflow
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install Dependencies
-        run: cd backend && npm install  # added 'cd backend'
+      - name: Install dependencies
+        run: cd backend && npm install
 
-      - name: Run Tests
-        run: cd backend && npm test     # added 'cd backend'
+      - name: Run tests
         env:
           DB_USER: postgres
           DB_HOST: localhost
           DB_DATABASE: cogniflow
           DB_PASSWORD: password
           DB_PORT: 5432
+        run: cd backend && npm test
