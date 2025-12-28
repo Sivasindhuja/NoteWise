@@ -16,8 +16,12 @@ describe('Notes API Endpoints', () => {
   });
 
   afterAll(async () => {
-    await pool.end(); 
-  },10000);
+  // Give it a tiny bit of time to close, but don't wait 10 seconds
+  await Promise.race([
+    pool.end(),
+    new Promise((resolve) => setTimeout(resolve, 2000)) // 2-second timeout
+  ]);
+});
 
 });
 
