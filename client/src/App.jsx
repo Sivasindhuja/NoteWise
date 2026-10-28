@@ -1,60 +1,63 @@
-import React, { useState, useEffect } from "react";
-import axios from 'axios';
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Note from "./components/Note";
-import CreateArea from "./components/CreateArea";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
+import Notes from './pages/Notes';
+import Quiz from './pages/Quiz';
+import QuizHistory from './pages/QuizHistory';
+import QuizResult from './pages/QuizResult';
+import Layout from './components/Layout';
+import './App.css';
+
+const PrivateRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    
+    if (loading) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '100vh',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            }}>
+                <div style={{ color: 'white', fontSize: '1.2rem' }}>Loading...</div>
+            </div>
+        );
+    }
+    
+    return user ? children : <Navigate to="/login" />;
+};
+
+function AppRoutes() {
+    const { user } = useAuth();
+    
+    return (
+        <Routes>
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+            <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
+            <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+                <Route index element={<Navigate to="/dashboard" />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="notes" element={<Notes />} />
+                <Route path="quiz" element={<Quiz />} />
+                <Route path="quiz/history" element={<QuizHistory />} />
+                <Route path="quiz/result/:quizId" element={<QuizResult />} />
+            </Route>
+        </Routes>
+    );
+}
 
 function App() {
-    const [notes, setNotes] = useState([]);
-    const userId = 1; 
-    
-
-    useEffect(() => {
-    // Define the function INSIDE the effect
-    const fetchNotes = async () => {
-        try {
-            const res = await axios.get(`http://13.48.177.41:5000/api/notes?userId=${userId}`);
-            setNotes(res.data);
-        } catch (err) {
-            console.error("Fetch failed:", err);
-        }
-    };
-
-    fetchNotes();
-}, []); // Empty dependency array ensures it runs once on mount
-    // CREATE
-    async function addNote(newNote) {
-        const res = await axios.post("http://13.48.177.41:5000/api/notes", {
-            ...newNote,
-            userId: userId
-        });
-        setNotes(prevNotes => [res.data, ...prevNotes]);
-    }
-
-    // DELETE
-    async function deleteNote(id) {
-        await axios.delete(`http://13.48.177.41:5000/api/notes/${id}`);
-        setNotes(prevNotes => prevNotes.filter(n => n.id !== id));
-    }
-
     return (
-        <div>
-            <Header />
-            <CreateArea onAdd={addNote} />
-            {notes.map(noteItem => (
-                <Note
-                    key={noteItem.id}
-                    id={noteItem.id}
-                    title={noteItem.title}
-                    content={noteItem.content}
-                    onDelete={deleteNote}
-                />
-            ))}
-            <Footer />
-        </div>
+        <AuthProvider>
+            <Router>
+                <AppRoutes />
+            </Router>
+        </AuthProvider>
     );
 }
 
 export default App;
-
