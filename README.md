@@ -182,13 +182,11 @@ The app will be available at `http://localhost:5173`
 
 ## Screenshots
 
-*Add screenshots of your application here. Suggested screenshots:*
-- Login/Signup page
-- Dashboard view
-- Notes management page
-- Quiz generation and taking interface
-- Quiz results with detailed review
-- Quiz history page
+### Sign Up / Sign In
+![NoteWise sign up and sign in](screenshots/signup%20and%20signin.png)
+
+### Dashboard
+![NoteWise dashboard](screenshots/dashboard.png)
 
 ## Future Enhancements
 
